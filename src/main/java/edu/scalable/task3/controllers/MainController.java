@@ -1,6 +1,6 @@
-//package com.example.Task_3.controllers;
+//package edu.scalable.task3.controllers;
 //
-//import com.example.Task_3.services.DatabaseSeeder;
+//import edu.scalable.task3.services.DatabaseSeeder;
 //import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.web.bind.annotation.GetMapping;
 //import org.springframework.web.bind.annotation.PostMapping;
@@ -8,17 +8,10 @@
 //import org.springframework.web.bind.annotation.RestController;
 //
 //@RestController
-////Replace it with your name_ID (e.g random_52_0000)
-//@RequestMapping("/random_52_xxxx")
+//@RequestMapping("/")
 //public class MainController {
-//    @Value("FirstName")
-//    String firstName;
-//    @Value("LastName")
-//    String lastName;
-//    @Value("ID")
-//    String ID;
-//    @Value("Instance")
-//    String Instance;
+//    @Value("${instance}")
+//    String instance;
 //
 //    DatabaseSeeder databaseSeeder;
 //
@@ -28,7 +21,7 @@
 //
 //    @GetMapping
 //    public String Hello() {
-//        return "Hello From Instance "+Instance+" "+firstName+" "+lastName+" "+ID;
+//        return "Hello From Instance %s".formatted(instance);
 //    }
 //
 //    @PostMapping("/seed")

@@ -1,10 +1,5 @@
-//package com.example.Task_3.services;
+//package edu.scalable.task3.services;
 //
-//import com.example.Task_3.models.Comment;
-//import com.example.Task_3.models.Post;
-//import com.example.Task_3.models.User;
-//import com.example.Task_3.repositories.PostRepository;
-//import com.example.Task_3.repositories.UserRepository;
 //import org.springframework.stereotype.Service;
 //
 //import java.util.Arrays;
