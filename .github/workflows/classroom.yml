@@ -1,0 +1,148 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'corretto'
+        java-version: '23'
+    - name: MongoDB Up
+      id: mongodb-up
+      run: docker compose up mongodb -d
+    - name: Maven Clean
+      id: maven-clean
+      run: mvn clean
+    - name: testUpdateUserUsername_Success
+      id: testupdateuserusername_success
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: testUpdateUserUsername_Success
+        setup-command: ''
+        command: mvn test -Dtest=Task3ApplicationTests#testUpdateUserUsername_Success
+        timeout: 10
+        max-score: 1
+    - name: testUpdateUserUsername_NotFound
+      id: testupdateuserusername_notfound
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: testUpdateUserUsername_NotFound
+        setup-command: ''
+        command: mvn test -Dtest=Task3ApplicationTests#testUpdateUserUsername_NotFound
+        timeout: 10
+        max-score: 1
+    - name: testGetPostsByAuthorID_WithPosts
+      id: testgetpostsbyauthorid_withposts
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: testGetPostsByAuthorID_WithPosts
+        setup-command: ''
+        command: mvn test -Dtest=Task3ApplicationTests#testGetPostsByAuthorID_WithPosts
+        timeout: 10
+        max-score: 1
+    - name: testGetPostsByAuthorID_NoPosts
+      id: testgetpostsbyauthorid_noposts
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: testGetPostsByAuthorID_NoPosts
+        setup-command: ''
+        command: mvn test -Dtest=Task3ApplicationTests#testGetPostsByAuthorID_NoPosts
+        timeout: 10
+        max-score: 1
+    - name: testAddComment_Success
+      id: testaddcomment_success
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: testAddComment_Success
+        setup-command: ''
+        command: mvn test -Dtest=Task3ApplicationTests#testAddComment_Success
+        timeout: 10
+        max-score: 1
+    - name: testAddComment_PostNotFound
+      id: testaddcomment_postnotfound
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: testAddComment_PostNotFound
+        setup-command: ''
+        command: mvn test -Dtest=Task3ApplicationTests#testAddComment_PostNotFound
+        timeout: 10
+        max-score: 1
+    - name: MongoDB Down
+      id: mongodb-down
+      run: docker compose down
+    - name: Docker Compose
+      id: docker-compose
+      run: mvn clean install -DskipTests && docker compose up --build -d && sleep 30
+    - name: NGINX
+      id: nginx
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: NGINX
+        setup-command: ''
+        command: curl localhost?[1-6]
+        input: ''
+        expected-output: Hello From Instance 1Hello From Instance 2Hello From Instance 2Hello From Instance 1
+        comparison-method: contains
+        timeout: 10
+        max-score: 2
+    - name: Setup JMeter
+      id: setup-jmeter
+      run: curl -L https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz --output /tmp/apache-jmeter-5.6.3.tgz && tar -zxf /tmp/apache-jmeter-5.6.3.tgz &&  mkdir -p /opt/apache && mv apache-jmeter-5.6.3 /opt/apache && rm /tmp/apache-jmeter-5.6.3.tgz && echo "/opt/apache/apache-jmeter-5.6.3/bin" >> $GITHUB_PATH
+    - name: JMeter 1
+      id: jmeter-1
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: JMeter 1
+        setup-command: ''
+        command: jmeter -n -t jmeter/Task_3_Plan.jmx
+        input: ''
+        expected-output: summary =\s*180 in 00:00:02 =\s*\d+.\d+\/s Avg:\s*\d+ Min:\s*\d+
+          Max:\s*\d+ Err:\s*0 \(0\.00%\)
+        comparison-method: regex
+        timeout: 10
+        max-score: 1
+    - name: JMeter 2
+      id: jmeter-2
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: JMeter 2
+        setup-command: ''
+        command: jmeter -n -t jmeter/Task_3_Plan.jmx -J jmeter.save.saveservice.output_format=xml
+          -J jmeter.save.saveservice.response_data=true -l jmeter/result.xml && head
+          -6 jmeter/result.xml
+        input: ''
+        expected-output: |-
+          <\?xml version="1\.0" encoding="UTF-8"\?>
+          <testResults version="1\.2">
+          <httpSample t="\d+" it="0" lt="\d+" ct="\d+" ts="\d+" s="true" lb="HTTP Request" rc="200" rm="" tn="Thread Group \d+-\d+" dt="text" by="\d+" sby="\d+" ng="\d+" na="\d+">
+            <responseData class="java\.lang\.String">Hello From Instance [1-2]<\/responseData>
+            <java\.net\.URL>http:\/\/localhost\/?<\/java\.net\.URL>
+          <\/httpSample>
+        comparison-method: regex
+        timeout: 10
+        max-score: 1
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TESTUPDATEUSERUSERNAME_SUCCESS_RESULTS: "${{steps.testupdateuserusername_success.outputs.result}}"
+        TESTUPDATEUSERUSERNAME_NOTFOUND_RESULTS: "${{steps.testupdateuserusername_notfound.outputs.result}}"
+        TESTGETPOSTSBYAUTHORID_WITHPOSTS_RESULTS: "${{steps.testgetpostsbyauthorid_withposts.outputs.result}}"
+        TESTGETPOSTSBYAUTHORID_NOPOSTS_RESULTS: "${{steps.testgetpostsbyauthorid_noposts.outputs.result}}"
+        TESTADDCOMMENT_SUCCESS_RESULTS: "${{steps.testaddcomment_success.outputs.result}}"
+        TESTADDCOMMENT_POSTNOTFOUND_RESULTS: "${{steps.testaddcomment_postnotfound.outputs.result}}"
+        NGINX_RESULTS: "${{steps.nginx.outputs.result}}"
+        JMETER-1_RESULTS: "${{steps.jmeter-1.outputs.result}}"
+        JMETER-2_RESULTS: "${{steps.jmeter-2.outputs.result}}"
+      with:
+        runners: testupdateuserusername_success,testupdateuserusername_notfound,testgetpostsbyauthorid_withposts,testgetpostsbyauthorid_noposts,testaddcomment_success,testaddcomment_postnotfound,nginx,jmeter-1,jmeter-2
